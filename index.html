@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Wash - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="brand">
+            <i class="fas fa-soap"></i> DataWash
+        </div>
+        <ul class="nav-links">
+            <li class="active" onclick="switchTab('home')"><i class="fas fa-home"></i> Home</li>
+            <li onclick="switchTab('cleaner')"><i class="fas fa-magic"></i> Data Cleaner</li>
+            <li onclick="switchTab('history')"><i class="fas fa-history"></i> History</li>
+            <li onclick="switchTab('insights')"><i class="fas fa-chart-pie"></i> Insights</li>
+            <li onclick="switchTab('settings')"><i class="fas fa-cog"></i> Settings</li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        
+        <section id="home" class="page-section active-section">
+            <div class="hero-container">
+                <div class="hero-text">
+                    <div class="brand-header">
+                        <i class="fas fa-soap brand-icon"></i>
+                        <h1>DataWash</h1>
+                    </div>
+                    <p class="hero-description">
+                        DataWash is your intelligent Data Engineering assistant. Parse messy datasets, detect missing values, remove duplicates, and generate instant insights.
+                    </p>
+                    <div class="advantages-list">
+                        <h3><i class="fas fa-check-circle"></i> Why DataWash?</h3>
+                        <ul>
+                            <li><strong>Privacy First:</strong> Data processed locally.</li>
+                            <li><strong>Instant Viz:</strong> Real-time charts.</li>
+                            <li><strong>No Code:</strong> Clean without scripts.</li>
+                        </ul>
+                    </div>
+                    <div class="hero-actions">
+                        <button class="btn-primary" onclick="switchTab('cleaner')"><i class="fas fa-magic"></i> Start Cleaning</button>
+                        <button class="btn-secondary" onclick="switchTab('settings')"><i class="fas fa-cog"></i> Configure</button>
+                        <button class="btn-secondary" onclick="switchTab('history')"><i class="fas fa-history"></i> History</button>
+                    </div>
+                </div>
+                <div class="hero-visuals">
+                    <img src="{{ url_for('static', filename='images/graph2.jpg') }}" alt="Analytics" class="main-img">
+                    <img src="{{ url_for('static', filename='images/graph.png') }}" alt="Graph" class="floating-img">
+                </div>
+            </div>
+        </section>
+
+        <section id="cleaner" class="page-section">
+            
+            <div id="upload-state" class="upload-wrapper">
+                <div class="upload-content-area">
+                    <div class="upload-header">
+                        <h2><i class="fas fa-magic"></i> Ready to Clean?</h2>
+                        <p>Our smart engine will prepare your CSV for analysis.</p>
+                    </div>
+
+                    <input type="file" id="fileInput" accept=".csv" hidden>
+
+                    <div class="upload-card-wrapper">
+                        <div class="upload-card" onclick="document.getElementById('fileInput').click()">
+                            <i class="fas fa-cloud-upload-alt upload-icon-large"></i>
+                            <h3>Upload CSV File</h3>
+                            <p>Drag & drop or click to browse</p>
+                            <span class="btn-primary-small">Choose File</span>
+                        </div>
+                    
+                    </div>
+
+                    <p class="upload-footer-tip">
+                        <i class="fas fa-info-circle"></i> Supports .csv files up to 50MB.
+                    </p>
+                </div>
+            </div>
+
+            <div id="loader" class="center-screen hidden">
+                <div class="spinner"></div>
+                <p>Analyzing & Cleaning Data...</p>
+            </div>
+
+            <div id="dashboard" class="dashboard-container hidden">
+                <div class="stats-bar">
+                    <div class="stat-item"><div class="stat-icon green"><i class="fas fa-table"></i></div><div><h4>Rows</h4><span id="stat-rows">0</span></div></div>
+                    <div class="stat-item"><div class="stat-icon blue"><i class="fas fa-columns"></i></div><div><h4>Columns</h4><span id="stat-cols">0</span></div></div>
+                    <div class="stat-item"><div class="stat-icon purple"><i class="fas fa-broom"></i></div><div><h4>Duplicates</h4><span id="stat-dupes">0</span></div></div>
+                </div>
+
+                <div class="workspace-split">
+                    <div class="editor-panel">
+                        <div class="panel-header">
+                            <h3><i class="fas fa-edit"></i> Data Editor</h3>
+                            <button class="btn-icon" onclick="addRow()"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <div class="table-scroll-area">
+                            <table id="dataTable"></table>
+                        </div>
+                    </div>
+
+                    <div class="viz-panel">
+                        
+                        <div class="viz-card top-card">
+                            <h3><i class="fas fa-chart-bar"></i> Live Analysis</h3>
+                            <div class="chart-wrapper">
+                                <canvas id="myChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="viz-card bottom-card">
+                            <h3>Actions</h3>
+                            <button class="btn-secondary full-width" onclick="saveAndReset()">
+                                <i class="fas fa-plus-circle"></i> Clean New File
+                            </button>
+                            <button class="btn-primary full-width" onclick="showDownloadPopup()">
+                                <i class="fas fa-download"></i> Download CSV
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="settings" class="page-section">
+            <div class="settings-container">
+                <h2><i class="fas fa-sliders-h"></i> Settings</h2>
+                <div class="setting-group">
+                    <div class="setting-item">
+                        <div class="setting-info"><h3>Dark Mode</h3><p>Switch between light and dark themes.</p></div>
+                        <label class="switch">
+                            <input type="checkbox" id="themeToggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info"><h3>Reset App</h3><p>Clear cache and reload.</p></div>
+                        <button class="btn-secondary" onclick="window.location.reload()">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="history" class="page-section">
+            <div class="history-container">
+                <div class="history-header">
+                    <h2><i class="fas fa-history"></i> Session History</h2>
+                    <p>Files processed in this session. (Cleared on refresh)</p>
+                </div>
+
+                <div class="history-table-wrapper">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>File Name</th>
+                                <th>Rows</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            </tbody>
+                    </table>
+                    
+                    <div id="historyEmpty" class="empty-state">
+                        <i class="fas fa-box-open"></i>
+                        <p>No history yet. Clean a file to see it here.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="insights" class="page-section">
+            <div class="insights-container">
+                <div class="insights-header">
+                    <h2><i class="fas fa-lightbulb"></i> Deep Dive Analysis</h2>
+                    <p>Select a specific column to explore its statistics and distribution.</p>
+                </div>
+
+                <div id="insights-empty" class="empty-state-large">
+                    <i class="fas fa-search-dollar"></i>
+                    <h3>No Data to Analyze</h3>
+                    <p>Please upload and clean a file first.</p>
+                    <button class="btn-primary" onclick="switchTab('cleaner')">Go to Cleaner</button>
+                </div>
+
+                <div id="insights-content" class="hidden">
+                    
+                    <div class="controls-bar">
+                        <label for="columnSelect">Analyze Column:</label>
+                        <div class="select-wrapper">
+                            <select id="columnSelect" onchange="analyzeColumn()"></select>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+
+                    <div id="statsGrid" class="stats-grid-insights">
+                        </div>
+
+                    <div class="viz-card large-chart-card">
+                        <h3 id="chartTitle">Distribution</h3>
+                        <div class="chart-wrapper-large">
+                            <canvas id="insightsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="popup-overlay" class="popup-overlay hidden">
+        <div class="popup">
+            <i class="fas fa-file-export popup-icon"></i>
+            <h3>Ready to Export?</h3>
+            <div class="popup-actions">
+                <button class="btn-secondary" onclick="closePopup()">Cancel</button>
+                <button class="btn-primary" onclick="downloadCSV()">Yes, Download</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
